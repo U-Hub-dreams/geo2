@@ -3,867 +3,668 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>市町村サイコロ拡張ゲーム</title>
+  <title>仲間あつめJAPAN（プロトタイプ）</title>
+
+  <!-- Leaflet (CDN) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
   <style>
     :root{
       --bg:#0b1020;
-      --card:#121a33;
-      --card2:#0f1630;
-      --text:#e8ecff;
-      --muted:#aab3e6;
-      --line:rgba(255,255,255,.10);
-      --good:#34d399;
-      --warn:#fbbf24;
-      --bad:#fb7185;
-      --accent:#8b5cf6;
-      --accent2:#22c55e;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius: 18px;
+      --panel:#101a33;
+      --panel2:#0f1730;
+      --text:#e9eefc;
+      --muted:#aab4d6;
+      --accent:#7aa7ff;
+      --good:#50e3c2;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
-      background: radial-gradient(1200px 900px at 20% 5%, rgba(139,92,246,.25), transparent 55%),
-                  radial-gradient(1000px 700px at 95% 15%, rgba(34,197,94,.18), transparent 55%),
-                  radial-gradient(900px 700px at 40% 110%, rgba(59,130,246,.14), transparent 55%),
-                  var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, #172a55, var(--bg));
       color:var(--text);
     }
     header{
-      position:sticky; top:0;
-      backdrop-filter: blur(14px);
-      background: linear-gradient(to bottom, rgba(11,16,32,.92), rgba(11,16,32,.60));
-      border-bottom: 1px solid var(--line);
-      z-index: 10;
-    }
-    .wrap{max-width: 1100px; margin: 0 auto; padding: 14px 14px;}
-    .titleRow{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
-    h1{font-size:18px; margin:0; letter-spacing:.02em;}
-    .sub{font-size:12px; color:var(--muted); margin-top:2px}
-    .pillRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-    .pill{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      color: var(--muted);
-      display:flex; gap:8px; align-items:center;
-    }
-    main .wrap{padding-top:16px; padding-bottom:30px;}
-    .grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
-    }
-    @media (max-width: 920px){
-      .grid{grid-template-columns:1fr; }
-    }
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card h2{
-      font-size:14px;
-      margin:0;
-      padding: 14px 14px 10px;
-      border-bottom: 1px solid var(--line);
-      color: #dfe6ff;
-      letter-spacing:.02em;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .card .body{padding:14px;}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-    label{font-size:12px; color:var(--muted);}
-    select,input[type="number"]{
-      background: rgba(255,255,255,.06);
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 10px 10px;
-      border-radius: 12px;
-      outline:none;
-    }
-    input[type="number"]{width:110px}
-    .btn{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(139,92,246,.18);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 14px;
-      cursor:pointer;
-      font-weight: 650;
-      letter-spacing:.02em;
-      transition: transform .08s ease, background .15s ease, border-color .15s ease;
-      user-select:none;
-    }
-    .btn:hover{transform: translateY(-1px); background: rgba(139,92,246,.26); border-color: rgba(255,255,255,.22);}
-    .btn:active{transform: translateY(0px);}
-    .btn.secondary{background: rgba(255,255,255,.06);}
-    .btn.good{background: rgba(34,197,94,.16);}
-    .btn.warn{background: rgba(251,191,36,.14);}
-    .btn.bad{background: rgba(251,113,133,.12);}
-    .btn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      transform:none;
-    }
-    .hint{font-size:12px; color:var(--muted); line-height:1.6}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
-    .divider{height:1px; background: var(--line); margin: 12px 0;}
-    .nodes{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-    }
-    @media (max-width: 520px){
-      .nodes{grid-template-columns: repeat(2, 1fr);}
-    }
-    .node{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      border-radius: 16px;
-      padding: 10px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      cursor:pointer;
-      transition: transform .08s ease, background .15s ease, border-color .15s ease;
-      min-height: 88px;
-      position:relative;
-    }
-    .node:hover{transform: translateY(-1px); background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.20);}
-    .node .name{font-weight:800; font-size:13px; letter-spacing:.02em;}
-    .node .pop{font-size:12px; color: var(--muted);}
-    .node .tags{display:flex; gap:6px; flex-wrap:wrap;}
-    .tag{
-      font-size:11px;
-      padding: 4px 8px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.12);
-      color: var(--muted);
-    }
-    .tag.owned{color:#dfffe9; border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.12);}
-    .tag.here{color:#efe8ff; border-color: rgba(139,92,246,.35); background: rgba(139,92,246,.12);}
-    .tag.start{color:#fff7da; border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.10);}
-    .tag.reco{color:#ffd5dd; border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.10);}
-    .node.small{min-height:auto}
-    .log{
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.18);
-      border-radius: 16px;
-      padding: 10px;
-      max-height: 260px;
-      overflow:auto;
-      font-size: 12px;
-      line-height: 1.55;
-      color: var(--muted);
-      white-space: pre-wrap;
-    }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    th,td{
-      border-bottom: 1px solid var(--line);
-      padding: 10px 6px;
-      text-align:left;
-    }
-    th{color:#dfe6ff; font-weight:800;}
-    .right{text-align:right;}
-    .bigDice{
-      font-size: 44px;
-      font-weight: 950;
-      letter-spacing:.02em;
-      margin: 6px 0 0;
-    }
-    .stepBox{
+      padding:14px 14px 10px;
       display:flex;
       gap:10px;
       align-items:center;
       justify-content:space-between;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      padding: 12px;
-      border-radius: 16px;
+      position:sticky; top:0;
+      background: linear-gradient(to bottom, rgba(11,16,32,.92), rgba(11,16,32,.65));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+      z-index:1000;
     }
-    .stepBox .k{font-size:12px; color:var(--muted)}
-    .stepBox .v{font-size:14px; font-weight:850}
-    textarea{
-      width:100%;
-      min-height: 220px;
-      resize: vertical;
-      background: rgba(0,0,0,.22);
-      border: 1px solid var(--line);
-      color: #dfe6ff;
-      padding: 12px;
-      border-radius: 16px;
-      outline:none;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      line-height: 1.5;
+    .title{
+      display:flex; flex-direction:column; gap:2px;
+      min-width: 0;
     }
-    .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 14px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.72);
-      border: 1px solid rgba(255,255,255,.16);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 999px;
-      font-size: 12px;
+    .title h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.3px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .title .sub{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .wrap{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:12px;
+      padding:12px;
+      max-width: 1200px;
+      margin:0 auto;
+    }
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(16,26,51,.92), rgba(15,23,48,.92));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
-      display:none;
-      z-index: 50;
+      overflow:hidden;
     }
-    .badge{
-      font-size: 11px;
-      padding: 4px 8px;
+    .card .card-h{
+      padding:12px 12px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .card-h .h{
+      font-weight:700;
+      font-size:14px;
+    }
+    .card .card-b{ padding:12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    label{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      flex: 1;
+      min-width: 130px;
+    }
+    select, input{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      outline:none;
+    }
+    button{
+      border:1px solid var(--border);
+      background: rgba(122,167,255,.14);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      font-weight:700;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, opacity .15s ease;
+      user-select:none;
+    }
+    button:hover{ background: rgba(122,167,255,.22); }
+    button:active{ transform: translateY(1px); }
+    button.secondary{ background: rgba(255,255,255,.06); }
+    button.good{ background: rgba(80,227,194,.16); }
+    button.warn{ background: rgba(255,204,102,.16); }
+    button.bad{ background: rgba(255,107,107,.16); }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .pill{
+      font-size:12px;
+      border:1px solid var(--border);
+      padding:6px 10px;
       border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.05);
       color: var(--muted);
+      background: rgba(0,0,0,.18);
+      white-space:nowrap;
+    }
+    .log{
+      margin-top:10px;
+      padding:10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      height: 150px;
+      overflow:auto;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #d7def7;
+    }
+    .log b{ color: var(--text); }
+    .score{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .score .p{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      border-radius: 14px;
+      padding:10px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .p .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .dot{
+      width:12px; height:12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.35);
+      flex: 0 0 auto;
+    }
+    .p .name{
+      font-weight:800;
+      font-size:13px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .p .meta{
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    #map{
+      height: calc(100vh - 110px);
+      min-height: 520px;
+      border-radius: var(--radius);
+    }
+    @media (max-width: 980px){
+      #map{ height: 62vh; min-height: 420px; }
+    }
+    .hint{
+      font-size:12px;
+      color: var(--muted);
+      margin-top:8px;
+      line-height:1.45;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(0,0,0,.20);
+      display:inline-block;
     }
   </style>
 </head>
+
 <body>
-<header>
-  <div class="wrap">
-    <div class="titleRow">
-      <div>
-        <h1>市町村サイコロ拡張ゲーム（試作）</h1>
-        <div class="sub">2〜4人 / 隣接移動 / 到着市町村の人口＝仲間（スコア）</div>
-      </div>
-      <div class="pillRow">
-        <div class="pill"><span class="badge">状態</span><span id="phaseLabel">未開始</span></div>
-        <div class="pill"><span class="badge">手番</span><span id="turnLabel">-</span></div>
-        <div class="pill"><span class="badge">ラウンド</span><span id="roundLabel">-</span></div>
-      </div>
+  <header>
+    <div class="title">
+      <h1>仲間あつめJAPAN（プロトタイプ）</h1>
+      <div class="sub">2〜4人対戦 / サイコロで隣接市町村へ移動 / 人口＝仲間</div>
     </div>
-  </div>
-</header>
+    <div class="pill" id="statusPill">未開始</div>
+  </header>
 
-<main>
   <div class="wrap">
-    <div class="grid">
-      <!-- 左：盤面（市町村） -->
-      <section class="card">
-        <h2>
-          <span>盤面（市町村カード）</span>
-          <span class="badge" id="boardMeta">データ: サンプル</span>
-        </h2>
-        <div class="body">
-          <div class="hint">
-            <b>遊び方（最小）</b><br>
-            ①人数とラウンド数を設定 → ②「ゲーム開始」→ ③スタート市町村をクリック<br>
-            ④手番の人が「サイコロ」→ ⑤出目ぶんだけ隣接をクリックして移動 → ⑥到着で人口を獲得
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="row" style="justify-content:space-between;">
-            <div class="stepBox" style="flex:1; min-width: 210px;">
-              <div>
-                <div class="k">サイコロ</div>
-                <div class="bigDice" id="diceFace">-</div>
-              </div>
-              <div style="text-align:right;">
-                <div class="k">残り移動</div>
-                <div class="v" id="movesLeft">-</div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
-              <button class="btn good" id="btnStart">ゲーム開始</button>
-              <button class="btn warn" id="btnRoll" disabled>サイコロ</button>
-              <button class="btn secondary" id="btnEndTurn" disabled>手番終了</button>
-              <button class="btn bad" id="btnReset">リセット</button>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="row" style="gap:12px;">
-            <label>現在地：</label>
-            <span class="mono" id="currentPos">-</span>
-            <span class="badge" id="ownerBadge">未獲得</span>
-          </div>
-
-          <div class="divider"></div>
-
-          <div id="board" class="nodes"></div>
-
-          <div class="divider"></div>
-
-          <div class="hint">
-            <b>クリックルール</b><br>
-            - スタート未決定：任意の市町村をクリック（全員合意の想定）<br>
-            - 移動中：<b>隣接</b>している市町村のみクリックで移動（残り移動が減る）<br>
-            - 残り移動が 0 になったら到着確定（人口獲得）→ 手番終了へ
-          </div>
-        </div>
-      </section>
-
-      <!-- 右：設定・スコア -->
-      <aside class="card">
-        <h2>
-          <span>設定・スコア</span>
-          <span class="badge">GitHub Pages 対応</span>
-        </h2>
-        <div class="body">
-          <div class="row">
-            <label>人数</label>
+    <div class="card">
+      <div class="card-h">
+        <div class="h">ゲーム設定</div>
+        <button class="secondary" id="resetBtn" title="最初から">リセット</button>
+      </div>
+      <div class="card-b">
+        <div class="row">
+          <label>
+            人数（2〜4）
             <select id="playerCount">
               <option value="2">2人</option>
               <option value="3">3人</option>
               <option value="4">4人</option>
             </select>
-
-            <label>ラウンド数</label>
-            <input id="maxRounds" type="number" min="1" max="30" value="8" />
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="hint"><b>プレイヤー名</b>（任意）</div>
-          <div class="row">
-            <input id="p1" placeholder="プレイヤー1" style="flex:1; min-width:140px;" />
-            <input id="p2" placeholder="プレイヤー2" style="flex:1; min-width:140px;" />
-          </div>
-          <div class="row">
-            <input id="p3" placeholder="プレイヤー3" style="flex:1; min-width:140px;" />
-            <input id="p4" placeholder="プレイヤー4" style="flex:1; min-width:140px;" />
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="hint"><b>スコア（仲間＝人口）</b></div>
-          <div style="overflow:auto; border-radius: 16px; border:1px solid var(--line);">
-            <table>
-              <thead>
-                <tr>
-                  <th>プレイヤー</th>
-                  <th class="right">仲間</th>
-                  <th class="right">獲得数</th>
-                </tr>
-              </thead>
-              <tbody id="scoreTable"></tbody>
-            </table>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="hint"><b>ログ</b></div>
-          <div class="log" id="log"></div>
-
-          <div class="divider"></div>
-
-          <details>
-            <summary style="cursor:pointer; color:#dfe6ff; font-weight:800;">市町村データ（編集可）</summary>
-            <div class="hint" style="margin:10px 0 8px;">
-              JSON を編集して「データを適用」。<br>
-              形式：<span class="mono">{"nodes":[{"id":"...","name":"...","pop":123,"neighbors":["..."]}, ...]}</span>
-            </div>
-            <textarea id="dataEditor"></textarea>
-            <div class="row" style="justify-content:flex-end; margin-top:10px;">
-              <button class="btn secondary" id="btnLoadSample">サンプルに戻す</button>
-              <button class="btn good" id="btnApplyData">データを適用</button>
-            </div>
-          </details>
+          </label>
+          <label>
+            スタート市町村（相談して決める）
+            <select id="startMunicipality"></select>
+          </label>
         </div>
-      </aside>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="startBtn" class="good">ゲーム開始</button>
+          <button id="rollBtn" class="warn" disabled>サイコロを振る</button>
+          <button id="endBtn" class="bad" disabled>ゲーム終了</button>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="pill">手番：<b id="turnLabel">-</b></div>
+          <div class="pill">出目：<b id="diceLabel">-</b></div>
+          <div class="pill">残り移動：<b id="stepsLabel">-</b></div>
+        </div>
+
+        <div class="hint">
+          使い方：<span class="kbd">サイコロ</span> → ハイライトされた隣接市町村をクリックして移動。<br/>
+          ルール：最初に到着した市町村の人口を獲得（以後は誰が行っても加点なし）。
+        </div>
+
+        <div class="score" id="scoreBoard"></div>
+
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div class="h">マップ</div>
+        <div class="pill">点＝市町村（サンプル）</div>
+      </div>
+      <div class="card-b" style="padding:12px;">
+        <div id="map"></div>
+      </div>
     </div>
   </div>
-</main>
-
-<div class="toast" id="toast"></div>
 
 <script>
-(() => {
-  // ===== サンプルデータ（埼玉のごく一部：近似）=====
-  // ※本格運用は、ここをあなたのデータに差し替え/編集してください。
-  const SAMPLE = {
-    nodes: [
-      { id:"koshigaya", name:"越谷市", pop:344000, neighbors:["soka","kawaguchi","kasukabe","yashio","misato","nagareyama"] },
-      { id:"soka",     name:"草加市", pop:252000, neighbors:["koshigaya","kawaguchi","yashio"] },
-      { id:"kawaguchi",name:"川口市", pop:606000, neighbors:["soka","warabi","toda","saitama","koshigaya"] },
-      { id:"warabi",   name:"蕨市",   pop: 75000, neighbors:["kawaguchi","toda"] },
-      { id:"toda",     name:"戸田市", pop:140000, neighbors:["warabi","kawaguchi","saitama"] },
-      { id:"saitama",  name:"さいたま市", pop:1320000, neighbors:["kawaguchi","toda","ageo","kasukabe"] },
-      { id:"kasukabe", name:"春日部市", pop:230000, neighbors:["koshigaya","saitama","ageo","kuki"] },
-      { id:"ageo",     name:"上尾市", pop:225000, neighbors:["saitama","kasukabe","kuki"] },
-      { id:"yashio",   name:"八潮市", pop: 93000, neighbors:["soka","koshigaya","misato"] },
-      { id:"misato",   name:"三郷市", pop:142000, neighbors:["yashio","koshigaya","nagareyama"] },
-      { id:"nagareyama", name:"流山市", pop:210000, neighbors:["misato","koshigaya"] },
-      { id:"kuki",     name:"久喜市", pop:150000, neighbors:["kasukabe","ageo"] },
-    ]
+/**
+ * ===========================
+ * 市町村データ（サンプル）
+ * ===========================
+ * 全国版にする場合は、ここを増やすだけで動きます：
+ * { id, name, pop, lat, lng, neighbors:[id...] }
+ */
+const MUNICIPALITIES = [
+  // 東京あたり（例）
+  { id:"tokyo-chiyoda", name:"東京都 千代田区", pop: 66840, lat:35.6938, lng:139.7530, neighbors:["tokyo-chuo","tokyo-minato","tokyo-shinjuku","tokyo-bunkyo","tokyo-taito"] },
+  { id:"tokyo-chuo",   name:"東京都 中央区",   pop: 173000, lat:35.6706, lng:139.7720, neighbors:["tokyo-chiyoda","tokyo-minato","tokyo-koto","tokyo-sumida","tokyo-taito"] },
+  { id:"tokyo-minato", name:"東京都 港区",     pop: 260000, lat:35.6581, lng:139.7516, neighbors:["tokyo-chiyoda","tokyo-chuo","tokyo-shinagawa","tokyo-shibuya","tokyo-shinjuku"] },
+  { id:"tokyo-shinjuku", name:"東京都 新宿区", pop: 350000, lat:35.6938, lng:139.7034, neighbors:["tokyo-chiyoda","tokyo-minato","tokyo-shibuya","tokyo-nakano","tokyo-bunkyo"] },
+  { id:"tokyo-shibuya", name:"東京都 渋谷区",  pop: 240000, lat:35.6618, lng:139.7041, neighbors:["tokyo-minato","tokyo-shinjuku","tokyo-nakano","tokyo-setagaya","tokyo-meguro"] },
+  { id:"tokyo-bunkyo", name:"東京都 文京区",   pop: 240000, lat:35.7081, lng:139.7520, neighbors:["tokyo-chiyoda","tokyo-shinjuku","tokyo-taito","tokyo-kita"] },
+  { id:"tokyo-taito", name:"東京都 台東区",    pop: 210000, lat:35.7126, lng:139.7781, neighbors:["tokyo-chiyoda","tokyo-chuo","tokyo-bunkyo","tokyo-sumida","tokyo-arakawa"] },
+  { id:"tokyo-sumida", name:"東京都 墨田区",   pop: 270000, lat:35.7107, lng:139.8015, neighbors:["tokyo-chuo","tokyo-taito","tokyo-koto","tokyo-edogawa","tokyo-arakawa"] },
+  { id:"tokyo-koto", name:"東京都 江東区",     pop: 520000, lat:35.6731, lng:139.8170, neighbors:["tokyo-chuo","tokyo-sumida","tokyo-edogawa","tokyo-minato"] },
+  // 埼玉寄り（例）
+  { id:"saitama-koshigaya", name:"埼玉県 越谷市", pop: 345000, lat:35.8912, lng:139.7900, neighbors:["saitama-soka","saitama-kasukabe","tokyo-adachi"] },
+  { id:"saitama-soka",     name:"埼玉県 草加市", pop: 250000, lat:35.8254, lng:139.8049, neighbors:["saitama-koshigaya","tokyo-adachi"] },
+  { id:"saitama-kasukabe", name:"埼玉県 春日部市", pop: 230000, lat:35.9750, lng:139.7520, neighbors:["saitama-koshigaya"] },
+  { id:"tokyo-adachi",     name:"東京都 足立区", pop: 690000, lat:35.7750, lng:139.8040, neighbors:["saitama-soka","saitama-koshigaya","tokyo-kita","tokyo-arakawa"] },
+  { id:"tokyo-kita",       name:"東京都 北区",   pop: 350000, lat:35.7528, lng:139.7335, neighbors:["tokyo-bunkyo","tokyo-adachi","tokyo-arakawa"] },
+  { id:"tokyo-arakawa",    name:"東京都 荒川区", pop: 220000, lat:35.7369, lng:139.7833, neighbors:["tokyo-taito","tokyo-sumida","tokyo-adachi","tokyo-kita"] },
+  // 西側をちょい足し
+  { id:"tokyo-nakano",     name:"東京都 中野区", pop: 340000, lat:35.7074, lng:139.6638, neighbors:["tokyo-shinjuku","tokyo-shibuya"] },
+  { id:"tokyo-setagaya",   name:"東京都 世田谷区", pop: 920000, lat:35.6466, lng:139.6532, neighbors:["tokyo-shibuya","tokyo-meguro"] },
+  { id:"tokyo-meguro",     name:"東京都 目黒区", pop: 280000, lat:35.6413, lng:139.6982, neighbors:["tokyo-shibuya","tokyo-setagaya","tokyo-shinagawa"] },
+  { id:"tokyo-shinagawa",  name:"東京都 品川区", pop: 410000, lat:35.6090, lng:139.7300, neighbors:["tokyo-minato","tokyo-meguro"] },
+];
+
+// ====== ユーティリティ ======
+const byId = Object.fromEntries(MUNICIPALITIES.map(m => [m.id, m]));
+const fmt = new Intl.NumberFormat("ja-JP");
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function nowTime(){
+  const d = new Date();
+  return d.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+}
+
+// ====== UI参照 ======
+const elStatus = document.getElementById("statusPill");
+const elPlayerCount = document.getElementById("playerCount");
+const elStartMunicipality = document.getElementById("startMunicipality");
+const elStartBtn = document.getElementById("startBtn");
+const elRollBtn = document.getElementById("rollBtn");
+const elEndBtn = document.getElementById("endBtn");
+const elResetBtn = document.getElementById("resetBtn");
+
+const elTurn = document.getElementById("turnLabel");
+const elDice = document.getElementById("diceLabel");
+const elSteps = document.getElementById("stepsLabel");
+const elLog = document.getElementById("log");
+const elScore = document.getElementById("scoreBoard");
+
+// ====== ゲーム状態 ======
+const COLORS = ["#7aa7ff","#50e3c2","#ffcc66","#ff6b6b"]; // 見分け用（Leaflet側にも使う）
+let map, markersLayer;
+let game = null;
+
+/**
+ * game = {
+ *   started: bool,
+ *   players: [{name,color,score,posId}],
+ *   turnIndex: number,
+ *   stepsLeft: number,
+ *   dice: number|null,
+ *   claimedBy: { [municipalityId]: playerIndex },
+ *   mode: "idle" | "needMove"
+ * }
+ */
+
+// ====== 初期化 ======
+initSelect();
+initMap();
+renderScoreboard([]);
+logLine("準備OK。人数とスタート市町村を選んで「ゲーム開始」してください。");
+
+elStartBtn.addEventListener("click", startGame);
+elRollBtn.addEventListener("click", rollDice);
+elEndBtn.addEventListener("click", endGame);
+elResetBtn.addEventListener("click", resetAll);
+
+// ====== セレクト埋め ======
+function initSelect(){
+  const opts = MUNICIPALITIES
+    .slice()
+    .sort((a,b)=> a.name.localeCompare(b.name,"ja"))
+    .map(m => `<option value="${m.id}">${m.name}</option>`)
+    .join("");
+  elStartMunicipality.innerHTML = opts;
+  // デフォルト：越谷市があれば選ぶ
+  if (byId["saitama-koshigaya"]) elStartMunicipality.value = "saitama-koshigaya";
+}
+
+// ====== 地図 ======
+function initMap(){
+  map = L.map('map', { zoomControl:true }).setView([35.78, 139.76], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  markersLayer = L.layerGroup().addTo(map);
+
+  // 初期表示（未開始なのでニュートラル）
+  redrawMarkers(null);
+}
+
+function redrawMarkers(g){
+  markersLayer.clearLayers();
+
+  for(const m of MUNICIPALITIES){
+    const claimed = g?.claimedBy?.[m.id];
+    const isClaimed = Number.isInteger(claimed);
+    const color = isClaimed ? COLORS[claimed] : "rgba(255,255,255,.55)";
+
+    const marker = L.circleMarker([m.lat, m.lng], {
+      radius: 8,
+      weight: 2,
+      opacity: 1,
+      color: color,
+      fillColor: color,
+      fillOpacity: isClaimed ? 0.55 : 0.18
+    });
+
+    marker.on("click", () => onMunicipalityClick(m.id));
+    marker.bindPopup(popupHtml(m, g));
+    marker.addTo(markersLayer);
+
+    // ハイライト（手番で移動候補）
+    if(g?.started && g.mode === "needMove"){
+      const curId = g.players[g.turnIndex].posId;
+      const candidates = getNeighbors(curId);
+      if(candidates.includes(m.id)){
+        marker.setStyle({
+          radius: 10,
+          weight: 3,
+          color: "rgba(255,255,255,.95)",
+          fillOpacity: 0.25
+        });
+      }
+      // 現在地はさらに強調
+      if(m.id === curId){
+        marker.setStyle({
+          radius: 12,
+          weight: 3,
+          color: COLORS[g.turnIndex],
+          fillColor: COLORS[g.turnIndex],
+          fillOpacity: 0.70
+        });
+      }
+    }
+  }
+}
+
+function popupHtml(m, g){
+  const claimed = g?.claimedBy?.[m.id];
+  let owner = "未獲得";
+  if(Number.isInteger(claimed)){
+    owner = `獲得者：<b>${g.players[claimed].name}</b>`;
+  }
+  return `
+    <div style="min-width:220px">
+      <div style="font-weight:800; margin-bottom:4px;">${escapeHtml(m.name)}</div>
+      <div style="font-size:12px; opacity:.9;">人口：<b>${fmt.format(m.pop)}</b></div>
+      <div style="font-size:12px; margin-top:4px;">${owner}</div>
+      <div style="font-size:11px; opacity:.85; margin-top:6px;">隣接：${m.neighbors.map(id=>escapeHtml(byId[id]?.name ?? id)).join(" / ")}</div>
+      <div style="font-size:11px; opacity:.75; margin-top:6px;">（クリックで移動できます）</div>
+    </div>
+  `;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+// ====== ゲーム開始 ======
+function startGame(){
+  const n = Number(elPlayerCount.value);
+  const startId = elStartMunicipality.value;
+
+  const players = Array.from({length:n}, (_,i)=>({
+    name: `Player ${i+1}`,
+    color: COLORS[i],
+    score: 0,
+    posId: startId
+  }));
+
+  game = {
+    started: true,
+    players,
+    turnIndex: 0,
+    stepsLeft: 0,
+    dice: null,
+    claimedBy: {},
+    mode: "idle"
   };
 
-  // ===== 状態 =====
-  const PHASE = {
-    READY: "ready",        // 未開始
-    PICK_START: "pick_start", // スタート選択
-    ROLL: "roll",          // サイコロ待ち
-    MOVE: "move",          // 移動中
-    END: "end"             // 終了
-  };
+  // スタート地点は「誰も獲得していない」扱いにして、最初の到着で獲得…でもいいですが、
+  // ここでは「開始時に全員が同じ地点にいる」ので、開始と同時に「先手が獲得」とします。
+  claimIfUnclaimed(startId, 0, true);
 
-  let data = structuredClone(SAMPLE);
-  let nodeById = new Map();
+  elStatus.textContent = "進行中";
+  elStartBtn.disabled = true;
+  elPlayerCount.disabled = true;
+  elStartMunicipality.disabled = true;
+  elRollBtn.disabled = false;
+  elEndBtn.disabled = false;
 
-  let phase = PHASE.READY;
-  let players = [];
-  let currentPlayer = 0;
-  let round = 1;
-  let maxRounds = 8;
+  updateTurnUi();
+  redrawMarkers(game);
 
-  let startNodeId = null;
-  let posByPlayer = []; // node id
-  let claimedBy = new Map(); // node id -> player index
-  let movesLeft = 0;
-  let lastDice = null;
+  logLine(`ゲーム開始！スタート：<b>${byId[startId].name}</b>（先手が獲得）`);
+  logLine(`手番：<b>${game.players[0].name}</b>`);
+}
 
-  // ===== DOM =====
-  const $ = (id) => document.getElementById(id);
+// ====== サイコロ ======
+function rollDice(){
+  if(!game?.started) return;
+  if(game.mode !== "idle") return;
 
-  const phaseLabel = $("phaseLabel");
-  const turnLabel = $("turnLabel");
-  const roundLabel = $("roundLabel");
-  const board = $("board");
-  const diceFace = $("diceFace");
-  const movesLeftEl = $("movesLeft");
-  const currentPosEl = $("currentPos");
-  const ownerBadge = $("ownerBadge");
+  game.dice = randInt(1,6);
+  game.stepsLeft = game.dice;
+  game.mode = "needMove";
 
-  const playerCountEl = $("playerCount");
-  const maxRoundsEl = $("maxRounds");
-  const scoreTable = $("scoreTable");
-  const logEl = $("log");
+  updateTurnUi();
+  redrawMarkers(game);
 
-  const btnStart = $("btnStart");
-  const btnRoll = $("btnRoll");
-  const btnEndTurn = $("btnEndTurn");
-  const btnReset = $("btnReset");
+  const cur = game.players[game.turnIndex];
+  logLine(`<b>${cur.name}</b> がサイコロ：<b>${game.dice}</b>。隣接市町村をクリックして移動してください。`);
+}
 
-  const dataEditor = $("dataEditor");
-  const btnLoadSample = $("btnLoadSample");
-  const btnApplyData = $("btnApplyData");
-  const boardMeta = $("boardMeta");
+// ====== 市町村クリック（移動） ======
+function onMunicipalityClick(targetId){
+  if(!game?.started) return;
 
-  const pInputs = [$("p1"), $("p2"), $("p3"), $("p4")];
+  // 地図のポップアップも見やすいので、クリックでポップアップが出るのはLeaflet側に任せつつ、移動も処理
+  if(game.mode !== "needMove") return;
 
-  const toast = $("toast");
-  let toastTimer = null;
+  const curPlayer = game.players[game.turnIndex];
+  const curId = curPlayer.posId;
+  const neighbors = getNeighbors(curId);
 
-  // ===== ユーティリティ =====
-  function showToast(msg){
-    toast.textContent = msg;
-    toast.style.display = "block";
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.style.display = "none", 1800);
-  }
-  function log(msg){
-    const t = new Date();
-    const hh = String(t.getHours()).padStart(2,"0");
-    const mm = String(t.getMinutes()).padStart(2,"0");
-    logEl.textContent = `[${hh}:${mm}] ${msg}\n` + logEl.textContent;
-  }
-  function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
-  function fmt(n){ return n.toLocaleString("ja-JP"); }
-
-  function buildIndex(){
-    nodeById = new Map(data.nodes.map(n => [n.id, n]));
-    // 参照整形（存在しない neighbor を除外）
-    for(const n of data.nodes){
-      n.neighbors = (n.neighbors || []).filter(id => nodeById.has(id));
-    }
+  if(!neighbors.includes(targetId)){
+    // 候補外クリックは無視（ログだけ軽く出す）
+    return;
   }
 
-  function validateData(obj){
-    if(!obj || typeof obj !== "object") return "JSONがオブジェクトではありません。";
-    if(!Array.isArray(obj.nodes)) return "nodes が配列ではありません。";
-    const ids = new Set();
-    for(const n of obj.nodes){
-      if(!n.id || !n.name || typeof n.pop !== "number") return "各nodeに id/name/pop(数値) が必要です。";
-      if(ids.has(n.id)) return "id が重複しています: " + n.id;
-      ids.add(n.id);
-      if(!Array.isArray(n.neighbors)) n.neighbors = [];
-    }
-    return null;
+  // 1歩進む
+  curPlayer.posId = targetId;
+  game.stepsLeft -= 1;
+
+  const movedName = byId[targetId].name;
+  logLine(`<b>${curPlayer.name}</b> → ${escapeHtml(movedName)}（残り <b>${game.stepsLeft}</b>）`);
+
+  // 到着時に獲得（未獲得なら）
+  claimIfUnclaimed(targetId, game.turnIndex, false);
+
+  // 0になったらターン終了
+  if(game.stepsLeft <= 0){
+    endTurn();
   }
 
-  function phaseText(){
-    switch(phase){
-      case PHASE.READY: return "未開始";
-      case PHASE.PICK_START: return "スタート選択";
-      case PHASE.ROLL: return "サイコロ待ち";
-      case PHASE.MOVE: return "移動中";
-      case PHASE.END: return "終了";
-      default: return "-";
-    }
+  updateTurnUi();
+  redrawMarkers(game);
+}
+
+// ====== ターン処理 ======
+function endTurn(){
+  const p = game.players[game.turnIndex];
+  logLine(`<span style="opacity:.9;">${escapeHtml(p.name)} の手番終了。</span>`);
+
+  game.turnIndex = (game.turnIndex + 1) % game.players.length;
+  game.dice = null;
+  game.stepsLeft = 0;
+  game.mode = "idle";
+
+  const next = game.players[game.turnIndex];
+  logLine(`次の手番：<b>${escapeHtml(next.name)}</b>`);
+}
+
+function updateTurnUi(){
+  if(!game?.started){
+    elTurn.textContent = "-";
+    elDice.textContent = "-";
+    elSteps.textContent = "-";
+    return;
   }
+  const p = game.players[game.turnIndex];
+  elTurn.textContent = p.name;
+  elDice.textContent = game.dice ?? "-";
+  elSteps.textContent = game.mode === "needMove" ? game.stepsLeft : "-";
 
-  function currentPlayerName(){
-    return players[currentPlayer]?.name ?? `プレイヤー${currentPlayer+1}`;
+  renderScoreboard(game.players);
+  // サイコロボタンは「移動中は無効」
+  elRollBtn.disabled = (game.mode !== "idle");
+}
+
+function renderScoreboard(players){
+  if(!players.length){
+    elScore.innerHTML = `<div class="hint">スコアはここに表示されます。</div>`;
+    return;
   }
+  elScore.innerHTML = players.map((p,i)=>`
+    <div class="p" style="${i===game.turnIndex ? 'outline:2px solid rgba(255,255,255,.12);' : ''}">
+      <div class="left">
+        <div class="dot" style="background:${p.color}"></div>
+        <div class="name">${escapeHtml(p.name)}</div>
+      </div>
+      <div class="meta">仲間：<b style="color:var(--text)">${fmt.format(p.score)}</b></div>
+    </div>
+  `).join("");
+}
 
-  function getPlayerScore(i){
-    return players[i].score;
-  }
+function getNeighbors(id){
+  const m = byId[id];
+  if(!m) return [];
+  return m.neighbors.filter(n => !!byId[n]);
+}
 
-  function ownedCount(i){
-    let c=0;
-    for(const [,owner] of claimedBy) if(owner===i) c++;
-    return c;
-  }
+function claimIfUnclaimed(muniId, playerIndex, isStart){
+  if(Number.isInteger(game.claimedBy[muniId])) return;
 
-  function renderHeader(){
-    phaseLabel.textContent = phaseText();
-    if(phase === PHASE.READY){
-      turnLabel.textContent = "-";
-      roundLabel.textContent = "-";
-    }else{
-      turnLabel.textContent = `${currentPlayerName()}（P${currentPlayer+1}）`;
-      roundLabel.textContent = `${round} / ${maxRounds}`;
-    }
-    diceFace.textContent = lastDice ?? "-";
-    movesLeftEl.textContent = (phase === PHASE.MOVE) ? String(movesLeft) : "-";
-  }
+  game.claimedBy[muniId] = playerIndex;
+  const p = game.players[playerIndex];
+  const pop = byId[muniId].pop;
+  p.score += pop;
 
-  function renderScore(){
-    scoreTable.innerHTML = "";
-    for(let i=0;i<players.length;i++){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${players[i].name}</td>
-        <td class="right">${fmt(players[i].score)}</td>
-        <td class="right">${fmt(ownedCount(i))}</td>
-      `;
-      scoreTable.appendChild(tr);
-    }
-  }
+  const tag = isStart ? "開始地点獲得" : "獲得";
+  logLine(`<b>${p.name}</b> が ${escapeHtml(byId[muniId].name)} を${tag}！ +<b>${fmt.format(pop)}</b>`);
+  renderScoreboard(game.players);
+}
 
-  function renderCurrentPos(){
-    const pos = posByPlayer[currentPlayer];
-    if(!pos){
-      currentPosEl.textContent = "-";
-      ownerBadge.textContent = "未獲得";
-      ownerBadge.className = "badge";
-      return;
-    }
-    const n = nodeById.get(pos);
-    currentPosEl.textContent = `${n.name}（${fmt(n.pop)}）`;
-    if(claimedBy.has(pos)){
-      const owner = claimedBy.get(pos);
-      ownerBadge.textContent = `獲得済：${players[owner].name}`;
-      ownerBadge.className = "badge";
-    }else{
-      ownerBadge.textContent = "未獲得";
-      ownerBadge.className = "badge";
-    }
-  }
+function endGame(){
+  if(!game?.started) return;
 
-  function canClickNode(targetId){
-    if(phase === PHASE.PICK_START) return true;
-    if(phase !== PHASE.MOVE) return false;
-    if(movesLeft <= 0) return false;
-    const cur = posByPlayer[currentPlayer];
-    if(!cur) return false;
-    const curNode = nodeById.get(cur);
-    return curNode.neighbors.includes(targetId);
-  }
+  // 勝者判定（同点あり）
+  const max = Math.max(...game.players.map(p=>p.score));
+  const winners = game.players.filter(p=>p.score===max).map(p=>p.name);
 
-  function recommendedNeighbors(curId){
-    // まだ未獲得で人口が高い隣接を最大2つ「おすすめ」表示
-    const cur = nodeById.get(curId);
-    if(!cur) return [];
-    return cur.neighbors
-      .filter(id => !claimedBy.has(id))
-      .map(id => nodeById.get(id))
-      .sort((a,b)=> b.pop - a.pop)
-      .slice(0,2)
-      .map(n => n.id);
-  }
+  elStatus.textContent = "終了";
+  elRollBtn.disabled = true;
+  elEndBtn.disabled = true;
 
-  function renderBoard(){
-    board.innerHTML = "";
-    if(data.nodes.length === 0){
-      board.innerHTML = `<div class="hint">市町村データが空です。</div>`;
-      return;
-    }
+  logLine(`<hr style="border:0;border-top:1px solid rgba(255,255,255,.12);margin:10px 0;">`);
+  logLine(`ゲーム終了！ 優勝：<b>${escapeHtml(winners.join(" / "))}</b>（仲間 ${fmt.format(max)}）`);
 
-    const curId = posByPlayer[currentPlayer];
-    const reco = curId ? new Set(recommendedNeighbors(curId)) : new Set();
+  game.started = false; // 進行停止
+}
 
-    for(const n of data.nodes){
-      const div = document.createElement("div");
-      div.className = "node";
-      div.dataset.id = n.id;
+function resetAll(){
+  game = null;
+  elStatus.textContent = "未開始";
+  elStartBtn.disabled = false;
+  elPlayerCount.disabled = false;
+  elStartMunicipality.disabled = false;
+  elRollBtn.disabled = true;
+  elEndBtn.disabled = true;
 
-      const tags = [];
-      if(startNodeId === n.id) tags.push(`<span class="tag start">スタート</span>`);
-      if(curId === n.id) tags.push(`<span class="tag here">手番の現在地</span>`);
-      if(claimedBy.has(n.id)){
-        const owner = claimedBy.get(n.id);
-        tags.push(`<span class="tag owned">獲得：${players[owner]?.name ?? ("P"+(owner+1))}</span>`);
-      }
-      if(reco.has(n.id)) tags.push(`<span class="tag reco">おすすめ</span>`);
+  elLog.innerHTML = "";
+  logLine("リセットしました。人数とスタート市町村を選んで「ゲーム開始」してください。");
+  renderScoreboard([]);
+  updateTurnUi();
+  redrawMarkers(null);
+}
 
-      const clickable = canClickNode(n.id);
-      div.style.outline = clickable ? "2px solid rgba(34,197,94,.35)" : "none";
-      div.style.opacity = (phase === PHASE.MOVE && curId && !clickable && n.id !== curId) ? ".55" : "1";
-
-      div.innerHTML = `
-        <div class="name">${n.name}</div>
-        <div class="pop">人口: ${fmt(n.pop)}</div>
-        <div class="tags">${tags.join("")}</div>
-      `;
-
-      div.addEventListener("click", () => onNodeClick(n.id));
-      board.appendChild(div);
-    }
-  }
-
-  function updateUI(){
-    renderHeader();
-    renderScore();
-    renderCurrentPos();
-    renderBoard();
-
-    // ボタン制御
-    btnStart.disabled = !(phase === PHASE.READY);
-    btnRoll.disabled = !(phase === PHASE.ROLL);
-    btnEndTurn.disabled = !(phase === PHASE.ROLL || phase === PHASE.MOVE); // 移動中でも「諦めて終了」できる
-  }
-
-  // ===== ゲーム進行 =====
-  function initPlayers(){
-    const cnt = Number(playerCountEl.value);
-    players = [];
-    for(let i=0;i<cnt;i++){
-      const name = (pInputs[i].value || "").trim() || `プレイヤー${i+1}`;
-      players.push({ name, score: 0 });
-    }
-  }
-
-  function setPhase(p){
-    phase = p;
-    updateUI();
-  }
-
-  function startGame(){
-    initPlayers();
-    maxRounds = Math.max(1, Math.min(30, Number(maxRoundsEl.value || 8)));
-
-    // 初期化
-    currentPlayer = 0;
-    round = 1;
-    startNodeId = null;
-    posByPlayer = new Array(players.length).fill(null);
-    claimedBy = new Map();
-    movesLeft = 0;
-    lastDice = null;
-    logEl.textContent = "";
-
-    setPhase(PHASE.PICK_START);
-    log(`ゲーム開始：${players.length}人 / ${maxRounds}ラウンド。スタート市町村をクリックで決定してください。`);
-    showToast("スタート市町村をクリックしてください");
-  }
-
-  function onNodeClick(nodeId){
-    if(phase === PHASE.PICK_START){
-      startNodeId = nodeId;
-      for(let i=0;i<players.length;i++) posByPlayer[i] = nodeId;
-      log(`スタート決定：${nodeById.get(nodeId).name}。全員ここから開始。`);
-      setPhase(PHASE.ROLL);
-      updateUI();
-      return;
-    }
-
-    if(!canClickNode(nodeId)){
-      if(phase === PHASE.MOVE){
-        showToast("隣接している市町村のみ移動できます");
-      }
-      return;
-    }
-
-    // 移動
-    posByPlayer[currentPlayer] = nodeId;
-    movesLeft--;
-    log(`${currentPlayerName()} が移動 → ${nodeById.get(nodeId).name}（残り移動 ${movesLeft}）`);
-
-    if(movesLeft <= 0){
-      settleArrival(nodeId);
-      setPhase(PHASE.ROLL); // 次の人のサイコロ待ち
-      // 自動で手番終了して次へ（テンポ重視）
-      endTurn(true);
-      return;
-    }
-
-    updateUI();
-  }
-
-  function rollDice(){
-    if(phase !== PHASE.ROLL) return;
-    const d = 1 + Math.floor(Math.random()*6);
-    lastDice = d;
-    movesLeft = d;
-    setPhase(PHASE.MOVE);
-    log(`${currentPlayerName()} がサイコロ → ${d}。隣接を ${d} 回クリックして移動。`);
-    showToast(`出目 ${d}：隣接をクリックして移動`);
-  }
-
-  function settleArrival(nodeId){
-    // 到着市町村を獲得（未獲得なら）
-    if(!claimedBy.has(nodeId)){
-      claimedBy.set(nodeId, currentPlayer);
-      const pop = nodeById.get(nodeId).pop;
-      players[currentPlayer].score += pop;
-      log(`到着確定：${nodeById.get(nodeId).name} を獲得！ 仲間 +${fmt(pop)}`);
-      showToast(`獲得！ +${fmt(pop)}`);
-    }else{
-      const owner = claimedBy.get(nodeId);
-      log(`到着確定：${nodeById.get(nodeId).name} は既に ${players[owner].name} が獲得済（加点なし）`);
-      showToast("獲得済み（加点なし）");
-    }
-  }
-
-  function endTurn(auto=false){
-    if(!(phase === PHASE.ROLL || phase === PHASE.MOVE)) return;
-
-    // 移動途中で終了したい場合：現在地で確定して獲得（movesLeft>0でも）
-    if(phase === PHASE.MOVE){
-      const curId = posByPlayer[currentPlayer];
-      // 移動を放棄して到着扱い
-      movesLeft = 0;
-      settleArrival(curId);
-      setPhase(PHASE.ROLL);
-    }
-
-    const prev = currentPlayer;
-    currentPlayer = (currentPlayer + 1) % players.length;
-
-    // ラウンド管理：全員が1回ずつ終えたら round+1
-    if(currentPlayer === 0){
-      round++;
-      if(round > maxRounds){
-        finishGame();
-        return;
-      }
-      log(`--- ラウンド ${round} 開始 ---`);
-    }
-
-    lastDice = null;
-    movesLeft = 0;
-
-    if(!auto){
-      log(`${players[prev].name} の手番終了 → 次は ${currentPlayerName()}`);
-    }
-    updateUI();
-  }
-
-  function finishGame(){
-    setPhase(PHASE.END);
-    btnRoll.disabled = true;
-    btnEndTurn.disabled = true;
-
-    const scores = players.map(p => p.score);
-    const max = Math.max(...scores);
-    const winners = players
-      .map((p,i)=>({name:p.name,score:p.score,i}))
-      .filter(x=>x.score===max);
-
-    log(`=== ゲーム終了（${maxRounds}ラウンド） ===`);
-    if(winners.length === 1){
-      log(`優勝：${winners[0].name}（仲間 ${fmt(winners[0].score)}）`);
-      showToast(`優勝：${winners[0].name}`);
-    }else{
-      log(`同点優勝：${winners.map(w=>w.name).join(" / ")}（仲間 ${fmt(max)}）`);
-      showToast("同点優勝！");
-    }
-    updateUI();
-  }
-
-  function resetAll(){
-    data = structuredClone(SAMPLE);
-    buildIndex();
-    boardMeta.textContent = "データ: サンプル";
-    dataEditor.value = JSON.stringify(data, null, 2);
-
-    phase = PHASE.READY;
-    players = [];
-    currentPlayer = 0;
-    round = 1;
-    maxRounds = Number(maxRoundsEl.value || 8);
-
-    startNodeId = null;
-    posByPlayer = [];
-    claimedBy = new Map();
-    movesLeft = 0;
-    lastDice = null;
-    logEl.textContent = "";
-    showToast("リセットしました");
-    updateUI();
-  }
-
-  // ===== データ編集 =====
-  function loadSample(){
-    data = structuredClone(SAMPLE);
-    buildIndex();
-    dataEditor.value = JSON.stringify(data, null, 2);
-    boardMeta.textContent = "データ: サンプル";
-    showToast("サンプルを読み込みました");
-    if(phase !== PHASE.READY){
-      log("データを差し替えたため、リセットを推奨します。");
-    }
-    updateUI();
-  }
-
-  function applyData(){
-    let obj;
-    try{
-      obj = JSON.parse(dataEditor.value);
-    }catch(e){
-      showToast("JSONが不正です");
-      return;
-    }
-    const err = validateData(obj);
-    if(err){
-      showToast(err);
-      return;
-    }
-    data = obj;
-    buildIndex();
-    boardMeta.textContent = "データ: カスタム";
-    showToast("データを適用しました");
-    if(phase !== PHASE.READY){
-      log("データを差し替えたため、リセットを推奨します。");
-    }
-    updateUI();
-  }
-
-  // ===== イベント =====
-  btnStart.addEventListener("click", startGame);
-  btnRoll.addEventListener("click", rollDice);
-  btnEndTurn.addEventListener("click", () => endTurn(false));
-  btnReset.addEventListener("click", resetAll);
-  btnLoadSample.addEventListener("click", loadSample);
-  btnApplyData.addEventListener("click", applyData);
-
-  // ===== 初期化 =====
-  buildIndex();
-  dataEditor.value = JSON.stringify(data, null, 2);
-  resetAll();
-
-})();
+function logLine(html){
+  elLog.insertAdjacentHTML("beforeend", `<div><span style="opacity:.65;">[${nowTime()}]</span> ${html}</div>`);
+  elLog.scrollTop = elLog.scrollHeight;
+}
 </script>
 </body>
 </html>
